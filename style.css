@@ -1,0 +1,101 @@
+:root {
+    --border-color: #ccc;
+    --header-bg: #e9ecef;
+    --cell-bg: #fff;
+    --correct-bg: #d4edda;
+    --incorrect-bg: #f8d7da;
+    --drag-over-bg: #cfe2ff;
+}
+
+body {
+    font-family: sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    padding: 20px;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #004085;
+}
+
+#app-container {
+    display: flex;
+    gap: 20px;
+}
+
+/* Process Bank (Draggable Items) */
+#process-bank {
+    width: 250px;
+    background-color: var(--header-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+#bank-list {
+    height: 80vh;
+    overflow-y: auto;
+}
+
+.process-item {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 5px;
+    cursor: grab;
+    transition: background-color 0.3s, opacity 0.3s;
+    font-size: 14px;
+}
+
+.process-item.dragging {
+    opacity: 0.5;
+}
+
+/* PMP Grid */
+#pmp-grid {
+    flex-grow: 1;
+    display: grid;
+    border: 1px solid var(--border-color);
+}
+
+.grid-header, .grid-cell {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 5px;
+}
+
+.grid-header {
+    background-color: var(--header-bg);
+    font-weight: bold;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.grid-cell {
+    background-color: var(--cell-bg);
+    min-height: 100px;
+    transition: background-color 0.3s;
+}
+
+.grid-cell.drag-over {
+    background-color: var(--drag-over-bg);
+}
+
+/* Feedback Styles */
+.process-item.correct {
+    background-color: var(--correct-bg);
+    border-color: #c3e6cb;
+}
+
+.process-item.incorrect {
+    background-color: var(--incorrect-bg);
+    border-color: #f5c6cb;
+}
