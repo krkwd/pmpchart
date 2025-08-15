@@ -19,6 +19,31 @@ h1, h2 {
     color: #004085;
 }
 
+#game-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto 15px auto;
+    padding: 0 10px;
+}
+
+#game-controls h2 {
+    margin: 0;
+    color: #dc3545;
+}
+
+#reset-btn {
+    background-color: #6c757d;
+    padding: 8px 20px;
+    font-size: 14px;
+}
+
+#reset-btn:hover {
+    background-color: #5a6268;
+}
+
+
 #app-container {
     display: flex;
     gap: 20px;
