@@ -124,3 +124,19 @@ h1, h2 {
     background-color: var(--incorrect-bg);
     border-color: #f5c6cb;
 }
+
+footer {
+    width: 100%;                  /* Ensures the footer spans the full width */
+    text-align: center;           /* Centers the text and icons */
+    margin-top: 40px;             /* Adds space above the footer */
+    padding-top: 20px;            /* Adds space below the separator line */
+    border-top: 1px solid #ccc;   /* A subtle line to separate it from the game */
+    color: #6c757d;               /* A muted gray color for the text */
+    font-size: 0.9em;             /* Makes the font slightly smaller */
+}
+
+.social-icon {
+    height: 1.1em; /* Sets the icon height relative to the text size */
+    width: auto;   /* Maintains the icon's aspect ratio */
+    vertical-align: middle; /* Aligns the icon nicely with the text line */
+}
