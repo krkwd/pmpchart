@@ -1,7 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Pre-load audio files
+    const correctSound = new Audio('audio/correct.mp3');
+    const incorrectSound = new Audio('audio/incorrect.mp3');
+
+    // Get references to all the HTML elements
     const pmpGrid = document.getElementById('pmp-grid');
     const bankList = document.getElementById('bank-list');
+    const incorrectCounterSpan = document.getElementById('incorrect-counter');
+    const resetBtn = document.getElementById('reset-btn');
+
     let allProcesses = [];
+    let incorrectCount = 0; 
+    // ... (the rest of your file)
 
     // Initialize the application
     async function init() {
@@ -10,16 +20,36 @@ document.addEventListener('DOMContentLoaded', () => {
         allProcesses = data.processes;
         setupGrid(data);
         populateBank(data.processes);
+        
+        // NEW: Add event listener for the reset button
+        resetBtn.addEventListener('click', resetGame);
+    }
+    
+    // NEW: Function to reset the game state
+    function resetGame() {
+        // 1. Reset counter
+        incorrectCount = 0;
+        incorrectCounterSpan.textContent = incorrectCount;
+        
+        // 2. Clear all items from grid cells
+        document.querySelectorAll('.grid-cell').forEach(cell => {
+            cell.innerHTML = '';
+        });
+        
+        // 3. Re-populate and re-shuffle the bank
+        populateBank(allProcesses);
     }
 
     // Create the grid structure with headers and cells
     function setupGrid(data) {
+        pmpGrid.innerHTML = ''; // Clear grid before building
         const { knowledgeAreas, processGroups } = data;
+		
         // Grid columns: 1 for KA headers + number of PGs
         pmpGrid.style.gridTemplateColumns = `200px repeat(${processGroups.length}, 1fr)`;
         
         // Create empty top-left corner
-        pmpGrid.appendChild(document.createElement('div'));
+        pmpGrid.appendChild(document.createElement('div')).classList.add('grid-header');
 
         // Create Process Group headers (top row)
         processGroups.forEach(pg => {
@@ -33,7 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
         knowledgeAreas.forEach(ka => {
             // KA header (first column)
             const kaHeader = document.createElement('div');
-            kaHeader.classList.add('grid-header');
+            kaHeader.classList.add('grid-header', 'ka-header'); // Add class for potential specific styling
+            kaHeader.style.left = 0; // Makes KA headers sticky
             kaHeader.textContent = ka;
             pmpGrid.appendChild(kaHeader);
 
@@ -49,34 +80,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Create the draggable process items in the bank
+    // Create the draggable process items in the bank (with shuffling)
     function populateBank(processes) {
-		    // --- START OF NEW CODE ---
-    // Create a copy of the array to avoid changing the original order
-    const shuffledProcesses = [...processes];
-
-    // Shuffle the copied array using the Fisher-Yates algorithm
-    for (let i = shuffledProcesses.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledProcesses[i], shuffledProcesses[j]] = [shuffledProcesses[j], shuffledProcesses[i]];
-    }
-    // --- END OF NEW CODE ---
-		
+        const shuffledProcesses = [...processes];
+        for (let i = shuffledProcesses.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledProcesses[i], shuffledProcesses[j]] = [shuffledProcesses[j], shuffledProcesses[i]];
+        }
+        
         bankList.innerHTML = '';
-		
-		
-		
-    // Now, loop over the newly shuffled array instead of the original one
-    shuffledProcesses.forEach(process => {
-        const item = document.createElement('div');
-        item.classList.add('process-item');
-        item.id = process.id;
-        item.textContent = process.name;
-        item.draggable = true;
-        addDragListeners(item);
-        bankList.appendChild(item);
-    });
-}
+        shuffledProcesses.forEach(process => {
+            const item = document.createElement('div');
+            item.classList.add('process-item');
+            item.id = process.id;
+            item.textContent = process.name;
+            item.draggable = true;
+            addDragListeners(item);
+            bankList.appendChild(item);
+        });
+    }
+
     // Add drag listeners to a process item
     function addDragListeners(item) {
         item.addEventListener('dragstart', handleDragStart);
@@ -102,37 +125,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleDragOver(e) {
         e.preventDefault(); // Necessary to allow dropping
-        e.target.closest('.grid-cell').classList.add('drag-over');
-    }
-
-    function handleDragLeave(e) {
-        e.target.closest('.grid-cell').classList.remove('drag-over');
-    }
-
-    function handleDrop(e) {
-        e.preventDefault();
-        const targetCell = e.target.closest('.grid-cell');
-        targetCell.classList.remove('drag-over');
-
-        const processId = e.dataTransfer.getData('text/plain');
-        const draggedElement = document.getElementById(processId);
-        
-        // Find the process data from our stored array
-        const processData = allProcesses.find(p => p.id === processId);
-
-        if (draggedElement && processData && targetCell) {
-            // Check for correctness
-            const isCorrect = 
-                processData.correctLocation.knowledgeArea === targetCell.dataset.knowledgeArea &&
-                processData.correctLocation.processGroup === targetCell.dataset.processGroup;
-            
-            draggedElement.classList.remove('correct', 'incorrect'); // Reset classes
-            draggedElement.classList.add(isCorrect ? 'correct' : 'incorrect');
-            
-            targetCell.appendChild(draggedElement);
+        const cell = e.target.closest('.grid-cell');
+        if (cell) {
+            cell.classList.add('drag-over');
         }
     }
 
+    function handleDragLeave(e) {
+        const cell = e.target.closest('.grid-cell');
+        if (cell) {
+            cell.classList.remove('drag-over');
+        }
+    }
+
+function handleDrop(e) {
+    e.preventDefault();
+    const targetCell = e.target.closest('.grid-cell');
+    if (!targetCell) return; // Dropped outside a valid cell
+
+    targetCell.classList.remove('drag-over');
+
+    const processId = e.dataTransfer.getData('text/plain');
+    const draggedElement = document.getElementById(processId);
+    
+    const processData = allProcesses.find(p => p.id === processId);
+
+    if (draggedElement && processData) {
+        const isCorrect = 
+            processData.correctLocation.knowledgeArea === targetCell.dataset.knowledgeArea &&
+            processData.correctLocation.processGroup === targetCell.dataset.processGroup;
+        
+        draggedElement.classList.remove('correct', 'incorrect');
+
+        // Check correctness and play the corresponding sound
+        if (isCorrect) {
+            draggedElement.classList.add('correct');
+            correctSound.play(); // NEW: Play correct sound
+        } else {
+            draggedElement.classList.add('incorrect');
+            incorrectCount++;
+            incorrectCounterSpan.textContent = incorrectCount;
+            incorrectSound.play(); // NEW: Play incorrect sound
+        }
+        
+        targetCell.appendChild(draggedElement);
+    }
+}
     // Start the app
     init();
 });
